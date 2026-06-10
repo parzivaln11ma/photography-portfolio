@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio — Photography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sidebar-w: 175px;
+    --navy: #1B2A5E;
+    --navy-dark: #152248;
+    --sidebar-text: rgba(255,255,255,0.82);
+    --sidebar-text-dim: rgba(255,255,255,0.45);
+    --sidebar-active: #FFFFFF;
+    --sidebar-active-bg: rgba(255,255,255,0.10);
+    --main-bg: #FAFAF8;
+    --text-primary: #111110;
+    --text-secondary: #6B6B65;
+    --text-muted: #A8A8A2;
+    --border: rgba(17,17,16,0.09);
+    --font: 'Inter', system-ui, sans-serif;
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--font);
+    display: flex;
+    background: var(--navy);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    min-height: 100vh;
+    background: var(--navy);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 200;
+    padding: 0;
+  }
+
+  .sidebar-top {
+    padding: 1.4rem 1.2rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .hamburger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px 0;
+    margin-bottom: 1rem;
+  }
+
+  .hamburger span {
+    display: block;
+    width: 20px;
+    height: 1.5px;
+    background: rgba(255,255,255,0.7);
+  }
+
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    line-height: 1.35;
+    text-decoration: none;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 1.4rem 0;
+  }
+
+  .sidebar-nav a {
+    display: block;
+    text-align: right;
+    padding: 6px 1.2rem;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s;
+    border-left: 2px solid transparent;
+  }
+
+  .sidebar-nav a:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .sidebar-nav a.active {
+    color: #fff;
+    background: rgba(255,255,255,0.10);
+    border-left-color: #fff;
+  }
+
+  .sidebar-bottom {
+    padding: 1rem 1.2rem 2rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .sidebar-bottom a {
+    display: block;
+    text-align: right;
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--sidebar-text-dim);
+    text-decoration: none;
+    padding: 3.5px 0;
+    transition: color 0.15s;
+  }
+
+  .sidebar-bottom a:hover { color: rgba(255,255,255,0.75); }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    background: var(--main-bg);
+    min-height: 100vh;
+  }
+
+  /* ── GALLERY MODE ── */
+  .gallery-view {
+    padding: 3.5rem 4rem 5rem;
+  }
+
+  .gallery-header {
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.2rem;
+  }
+
+  .gallery-header h1 {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+
+
+  /* masonry */
+  .masonry {
+    columns: 3;
+    column-gap: 10px;
+  }
+
+  @media (max-width: 1100px) { .masonry { columns: 2; } }
+  @media (max-width: 760px) {
+    .masonry { columns: 1; }
+    .gallery-view { padding: 2rem 1.5rem 4rem; }
+    .gallery-header { flex-direction: column; gap: 1rem; }
+  }
+
+  .photo-item {
+    break-inside: avoid;
+    margin-bottom: 10px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    background: #D8D8D4;
+    transition: opacity 0.25s;
+  }
+
+  .photo-item.hidden { display: none; }
+
+  .photo-item img {
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
+  }
+
+  .photo-item:hover img { transform: scale(1.04); }
+
+  .photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(10,10,8,0.6) 0%, transparent 55%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem;
+  }
+
+  .photo-item:hover .photo-overlay { opacity: 1; }
+
+  .photo-meta {
+    color: rgba(255,255,255,0.88);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .photo-meta strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
+    margin-bottom: 1px;
+  }
+
+  /* ── SINGLE VIEW ── */
+  .single-view {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 4rem 3rem 5rem;
+    min-height: 100vh;
+  }
+
+  .single-view.active { display: flex; }
+  .gallery-view.hidden { display: none; }
+
+  .single-img-wrap {
+    width: 100%;
+    max-width: 640px;
+    position: relative;
+  }
+
+  .single-img-wrap img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .single-caption {
+    text-align: center;
+    margin-top: 1.6rem;
+  }
+
+  .single-caption h2 {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    margin-bottom: 0.4rem;
+  }
+
+  .single-caption p {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .single-nav {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.8rem;
+  }
+
+  .single-nav button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 18px;
+    color: var(--text-secondary);
+    padding: 6px 10px;
+    transition: color 0.15s;
+  }
+
+  .single-nav button:hover { color: var(--text-primary); }
+
+  .back-btn {
+    align-self: flex-start;
+    margin-bottom: 2rem;
+    background: none;
+    border: none;
+    font-family: var(--font);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.15s;
+  }
+
+  .back-btn:hover { color: var(--text-primary); }
+
+  /* mobile sidebar toggle */
+  @media (max-width: 640px) {
+    :root { --sidebar-w: 0px; }
+    .sidebar { transform: translateX(-175px); transition: transform 0.25s; width: 175px; }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-top">
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <a class="sidebar-logo" href="#">Your<br>Name</a>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#" class="active" data-location="london">London</a>
+    <a href="#" data-location="venice">Venice</a>
+    <a href="#" data-location="vienna">Vienna</a>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <a href="#">Instagram</a>
+    <a href="#">Newsletter</a>
+    <a href="#">Legal notice</a>
+    <a href="#">Privacy policy</a>
+  </div>
+</aside>
+
+<main class="main">
+
+  <!-- GALLERY VIEW -->
+  <div class="gallery-view" id="galleryView">
+    <div class="gallery-header">
+      <h1 id="galleryTitle">London</h1>
+    </div>
+
+    <div class="masonry" id="gallery">
+
+      <!-- LONDON -->
+      <div class="photo-item" data-location="london" data-title="Southbank" data-loc="London">
+        <img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&auto=format&fit=crop" alt="Southbank London" loading="lazy">
+        <div class="photo-overlay"><div class="photo-meta"><strong>Southbank</strong>London</div></div>
+      </div>
+
+      <div class="photo-item" data-location="london" data-title="Rainy Street" data-loc="London">
+        <img src="https://images.unsplash.com/photo-1529655683826-aba9b3e77383?w=800&auto=format&fit=crop" alt="Rainy street London" loading="lazy">
+        <div class="photo-overlay"><div class="photo-meta"><strong>Rainy Street</strong>London</div></div>
+      </div>
+
+      <div class="photo-item" data-location="london" data-title="Tower Bridge" data-loc="London">
+        <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&auto=format&fit=crop" alt="Tower Bridge London" loading="lazy">
+        <div class="photo-overlay"><div class="photo-meta"><strong>Tower Bridge</strong>London</div></div>
+      </div>
+
+      <div class="photo-item" data-location="london" data-title="Market Light" data-loc="London">
+        <img src="https://images.unsplash.com/photo-1543832923-44667a44c804?w=800&auto=format&fit=crop" alt="Market London" loading="lazy">
+        <div class="photo-overlay"><div class="photo-meta"><strong>Market Light</strong>London</div></div>
+      </div>
+
+      <!-- VENICE -->
+      <div class="photo-item hidden" data-location="venice" data-title="Morning Canal" data-loc="Venice">
+        <img src="https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=800&auto=format&fit=crop" alt="Canal Venice" loading="lazy">
+        <div class="photo-overlay"><div class="photo-meta"><strong>Morning Canal</strong>Venice</div></div>
+      </div>
+
+      <div class="photo-item hidden" data-location="venice" data-title="Gondola" data-loc="Venice">
+        <img src="https://images.unsplash.com/photo-1534113414509-0eec2bfb493f?w=800&auto=format&fit=crop" alt="Gondola Venice" loading="lazy">
+        <div class="photo-overlay"><div class="photo-meta"><strong>Gondola</strong>Venice</div></div>
+      </div>
+
+      <div class="photo-item hidden" data-location="venice" data-title="Piazza at Dusk" data-loc="Venice">
+        <img src="https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800&auto=format&fit=crop" alt="Piazza Venice" loading="lazy">
+        <div class="photo-overlay"><div class="photo-meta"><strong>Piazza at Dusk</strong>Venice</div></div>
+      </div>
+
+      <div class="photo-item hidden" data-location="venice" data-title="Reflected Arches" data-loc="Venice">
+        <img src="https://images.unsplash.com/photo-1555990538-c4e4b6f07d56?w=800&auto=format&fit=crop" alt="Arches Venice" loading="lazy">
+        <div class="photo-overlay"><div class="photo-meta"><strong>Reflected Arches</strong>Venice</div></div>
+      </div>
+
+      <!-- VIENNA -->
+      <div class="photo-item hidden" data-location="vienna" data-title="Ringstrasse" data-loc="Vienna">
+        <img src="https://images.unsplash.com/photo-1516550893923-42d28e5677af?w=800&auto=format&fit=crop" alt="Ringstrasse Vienna" loading="lazy">
+        <div class="photo-overlay"><div class="photo-meta"><strong>Ringstrasse</strong>Vienna</div></div>
+      </div>
+
+      <div class="photo-item hidden" data-location="vienna" data-title="Café Interior" data-loc="Vienna">
+        <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&auto=format&fit=crop" alt="Café Vienna" loading="lazy">
+        <div class="photo-overlay"><div class="photo-meta"><strong>Café Interior</strong>Vienna</div></div>
+      </div>
+
+      <div class="photo-item hidden" data-location="vienna" data-title="Belvedere" data-loc="Vienna">
+        <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&auto=format&fit=crop" alt="Belvedere Vienna" loading="lazy">
+        <div class="photo-overlay"><div class="photo-meta"><strong>Belvedere</strong>Vienna</div></div>
+      </div>
+
+      <div class="photo-item hidden" data-location="vienna" data-title="Winter Dusk" data-loc="Vienna">
+        <img src="https://images.unsplash.com/photo-1491002052546-bf38f186af56?w=800&auto=format&fit=crop" alt="Winter Vienna" loading="lazy">
+        <div class="photo-overlay"><div class="photo-meta"><strong>Winter Dusk</strong>Vienna</div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SINGLE / DETAIL VIEW -->
+  <div class="single-view" id="singleView">
+    <button class="back-btn" id="backBtn">&#8592; Back</button>
+    <div class="single-img-wrap">
+      <img id="singleImg" src="" alt="">
+    </div>
+    <div class="single-caption">
+      <h2 id="singleTitle"></h2>
+      <p id="singleLoc"></p>
+    </div>
+    <div class="single-nav">
+      <button id="prevBtn" aria-label="Previous">&#8592;</button>
+      <button id="nextBtn" aria-label="Next">&#8594;</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const allItems = document.querySelectorAll('.photo-item');
+  const galleryView = document.getElementById('galleryView');
+  const singleView = document.getElementById('singleView');
+  const singleImg = document.getElementById('singleImg');
+  const singleTitle = document.getElementById('singleTitle');
+  const singleLoc = document.getElementById('singleLoc');
+  const galleryTitle = document.getElementById('galleryTitle');
+  const navLinks = document.querySelectorAll('.sidebar-nav a');
+  let visibleItems = [];
+  let currentIdx = 0;
+
+  function switchLocation(loc) {
+    // Update nav active state
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.dataset.location === loc);
+    });
+    // Show/hide photos
+    allItems.forEach(item => {
+      item.classList.toggle('hidden', item.dataset.location !== loc);
+    });
+    visibleItems = [...allItems].filter(i => i.dataset.location === loc);
+    // Update header
+    galleryTitle.textContent = loc.charAt(0).toUpperCase() + loc.slice(1);
+    // Return to gallery if in single view
+    singleView.classList.remove('active');
+    galleryView.classList.remove('hidden');
+    window.scrollTo(0, 0);
+  }
+
+  navLinks.forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      switchLocation(a.dataset.location);
+    });
+  });
+
+  // Init with London
+  switchLocation('london');
+
+  function openSingle(idx) {
+    currentIdx = idx;
+    const item = visibleItems[idx];
+    singleImg.src = item.querySelector('img').src;
+    singleImg.alt = item.querySelector('img').alt;
+    singleTitle.textContent = item.dataset.title;
+    singleLoc.textContent = item.dataset.loc;
+    galleryView.classList.add('hidden');
+    singleView.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  allItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const idx = visibleItems.indexOf(item);
+      if (idx !== -1) openSingle(idx);
+    });
+  });
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+    singleView.classList.remove('active');
+    galleryView.classList.remove('hidden');
+  });
+
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    openSingle((currentIdx - 1 + visibleItems.length) % visibleItems.length);
+  });
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    openSingle((currentIdx + 1) % visibleItems.length);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (!singleView.classList.contains('active')) return;
+    if (e.key === 'ArrowLeft') document.getElementById('prevBtn').click();
+    if (e.key === 'ArrowRight') document.getElementById('nextBtn').click();
+    if (e.key === 'Escape') document.getElementById('backBtn').click();
+  });
+
+  document.getElementById('hamburger').addEventListener('click', () => {
+    document.querySelector('.sidebar').classList.toggle('open');
+  });
+</script>
+</body>
+</html>
